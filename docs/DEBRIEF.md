@@ -92,12 +92,20 @@ Record what exists, never the values.
 Upstash resource: `upstash-kv-citron-pillow`, connected to the
 `offline-brief-engine` Vercel project.
 
-**Deploys are manual.** The Vercel project was linked before the GitHub repo
-existed, so it has no git integration: pushing to `main` does not deploy
-anything. Ship with `vercel --prod`. Connect the repo in the Vercel dashboard if
-push-to-deploy is wanted, which also gets preview deployments per branch. Until
-then, treat the deploy row above as the source of truth for what is actually
-running, not `git log`.
+**Deploys are push-to-deploy.** `RaMarWilson1/offline-brief-engine` is connected
+to the Vercel project, so a push to `main` builds and promotes to production, and
+a push to any other branch gets its own preview URL. `vercel --prod` still works
+and is the fallback if the integration is ever disconnected.
+
+Two consequences worth holding onto now that `main` is wired to production:
+
+- A commit that passes `npm test` locally but breaks the build is live-facing the
+  moment it is pushed. The gate before pushing to `main` is the same one CLAUDE.md
+  already requires before committing, so keep running it.
+- Preview deployments carry Preview-scoped env vars. `ANTHROPIC_API_KEY` is set
+  on **Production only**, so a preview branch has no key and every brief on it
+  falls to the keyword parser. That is the designed degradation rather than a
+  broken preview, but it will look like a bug to anyone who does not know.
 
 ## Security gate
 
