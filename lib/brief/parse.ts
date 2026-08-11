@@ -22,12 +22,14 @@ import {
   validateModelBrief,
 } from '../security/briefSchema';
 import { buildBriefPrompt, type UntrustedTextReport } from '../security/prompt';
+import { MODELS, withTuning } from './models';
 
 /**
- * Intake is classification against a fixed list, not reasoning. Low effort keeps
- * the buyer's first screen fast; the quality that matters lives in the engine.
+ * Intake is classification against a fixed list, not reasoning. The structured
+ * output schema does the constraining, so the cheapest fast tier is the right
+ * tool and the quality that matters lives in the engine. Tier and request shape
+ * both come from `models.ts`.
  */
-const MODEL = 'claude-opus-5';
 const EFFORT = 'low' as const;
 
 /**
@@ -140,16 +142,19 @@ export async function parseBriefWithModel(args: ParseArgs): Promise<ParseResult>
     selectedAudience: args.selectedAudience,
   });
 
-  const message = await anthropic.messages.create({
-    model: MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking: { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT,
-      format: { type: 'json_schema', schema: BRIEF_OUTPUT_SCHEMA },
-    },
-    messages: [{ role: 'user', content: prompt }],
-  });
+  const message = await anthropic.messages.create(
+    withTuning(
+      {
+        model: MODELS.briefParse,
+        max_tokens: MAX_TOKENS,
+        output_config: {
+          format: { type: 'json_schema', schema: BRIEF_OUTPUT_SCHEMA },
+        },
+        messages: [{ role: 'user', content: prompt }],
+      },
+      EFFORT,
+    ),
+  );
 
   // Check stop_reason before reading content. A refusal returns HTTP 200 with an
   // empty or partial content array, so indexing straight into content[0] would

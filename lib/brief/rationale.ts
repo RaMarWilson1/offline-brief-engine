@@ -25,8 +25,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { COMMUNITY_INDEX } from '../../db/seed';
 import { LIMITS, scrubText } from '../security/briefSchema';
 import { prepareUntrusted, mintDelimiter, sanitizeIndexField } from '../security/prompt';
+import { MODELS, withTuning } from './models';
 
-const MODEL = 'claude-opus-5';
 const MAX_TOKENS = 900;
 const TIMEOUT_MS = 12_000;
 
@@ -135,16 +135,19 @@ export async function writeRationales(
   ].join('\n');
 
   try {
-    const message = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      thinking: { type: 'adaptive' },
-      output_config: {
-        effort: 'low',
-        format: { type: 'json_schema', schema: outputSchema(ids) },
-      },
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const message = await anthropic.messages.create(
+      withTuning(
+        {
+          model: MODELS.rationale,
+          max_tokens: MAX_TOKENS,
+          output_config: {
+            format: { type: 'json_schema', schema: outputSchema(ids) },
+          },
+          messages: [{ role: 'user', content: prompt }],
+        },
+        'low',
+      ),
+    );
 
     if (message.stop_reason === 'refusal' || message.stop_reason === 'max_tokens') {
       return {};
