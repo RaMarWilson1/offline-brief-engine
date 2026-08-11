@@ -30,7 +30,7 @@ appending duplicates.
 | Phase | 1 complete and deployed — engine to screen, stateless |
 | Live URL | https://offline-brief-engine.vercel.app |
 | Repo | https://github.com/RaMarWilson1/offline-brief-engine (public) |
-| Last deploy | 2026-08-11, commit `625a097` |
+| Last deploy | 2026-08-11. Production now tracks `main` automatically |
 | Tests | 87 passing |
 | Security gate | every applicable box verified, one recorded exception, see table below |
 
@@ -66,12 +66,14 @@ appending duplicates.
 
 ## What is deployed
 
-Record each deploy here: date, commit, URL, what changed, what env vars were set
-or rotated.
+Production tracks `main` automatically, so this table records **notable** deploys
+rather than every one: the first, and any that change env vars, infrastructure,
+or the security posture. Routine pushes do not need a row.
 
 | Date | Commit | URL | Notes |
 |---|---|---|---|
-| 2026-08-11 | `625a097` | https://offline-brief-engine.vercel.app | First production deploy. Phase 1 plus model tiers, Upstash wiring, and security headers. Set `ANTHROPIC_API_KEY` in Production only. Upstash provisioned through the Vercel marketplace, which injected `KV_REST_API_*` itself across all three environments. No key rotated. |
+| 2026-08-11 | `625a097` | https://offline-brief-engine.vercel.app | First production deploy, shipped manually with `vercel --prod`. Phase 1 plus model tiers, Upstash wiring, and security headers. Set `ANTHROPIC_API_KEY` in Production only. Upstash provisioned through the Vercel marketplace, which injected `KV_REST_API_*` itself across all three environments. No key rotated. |
+| 2026-08-11 | `1cac031` | same | First **automatic** deploy, triggered by connecting the GitHub repo. Verified the integration end to end rather than assuming: pushed, watched a Production deployment appear and reach Ready in 14s, then confirmed on the live URL that all six security headers survived, `'unsafe-eval'` stayed out of the production CSP, and a brief still returned `source: "model"` in 2.2s. |
 
 ## Environment
 
