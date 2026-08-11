@@ -90,9 +90,25 @@ Two guards stop budget padding: an absolute score floor, and a relevance cliff
 measured against the best match in the set.
 
 Without them, a greedy fill keeps buying down the ranking until the money is
-gone, which is how a running shoe ends up sponsoring a sewing circle. On an
-$18,000 brief the engine returns $5,100 rather than buy the fourth-best match,
-and the interface says so rather than hiding it.
+gone, which is how a running shoe ends up sponsoring a sewing circle.
+
+The running shoe preset makes it concrete. Read by the keyword parser, the
+$18,000 brief allocates $16,500 across five communities and returns $1,500. It
+could have spent that remainder: a book club priced at exactly $1,500 was
+affordable and still unplaced. It scored 50 against a floor of 55, so the engine
+left the money on the table rather than put a running shoe in front of a book
+club. The interface states the held-back figure instead of hiding it as a
+rounding artifact.
+
+Those numbers are asserted in `lib/brief/docs.test.ts` against live engine
+output, so this paragraph cannot drift away from the code the way a hand-written
+example does.
+
+One caveat worth stating rather than glossing: a model reads the same brief
+slightly differently and usually places one more community, so the plan you get
+on the live site will not match the figures above to the dollar. The behaviour is
+the invariant; the exact arithmetic depends on which parser read the brief, and
+the interface always says which one did.
 
 Refusing to spend a client's money badly is a feature.
 
@@ -268,9 +284,13 @@ to their names would misrepresent them. Working machinery on invented rows beats
 invented machinery on borrowed names.
 
 What is calibrated rather than invented is the *shape*: the category mix is
-weighted toward run clubs as the deepest category, and blended network rates land
-near 93% check-in, 48% click-through, and 11% conversion. `engine.test.ts` asserts
-it, so the seed cannot quietly drift into a world where the pricing is wrong.
+weighted toward run clubs as the deepest category, and the blended network rates
+land at **92% check-in, 49% click-through, and 12% conversion**, against targets
+of 93 / 48 / 11 taken from published industry figures. Those are the computed
+rates, not the targets, which is why they are not round. `engine.test.ts` holds
+them within three points of target and `docs.test.ts` holds this paragraph to
+whatever the engine actually returns, so the seed cannot quietly drift into a
+world where the pricing is wrong.
 
 Swap the array for a production table and nothing downstream changes.
 

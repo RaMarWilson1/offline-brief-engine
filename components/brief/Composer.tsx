@@ -19,40 +19,12 @@
 import { useCallback, useState } from 'react';
 
 import PlanView from '@/components/plan/PlanView';
+import { PRESETS, type Preset } from '@/lib/brief/presets';
 import { CITIES } from '@/lib/security/briefSchema';
 import { CATEGORIES } from '@/lib/scoring/types';
 import type { ParsedBrief, Plan } from '@/lib/scoring/types';
 
 const RATIONALE_LIMIT = 3;
-
-/**
- * Example briefs. Written as generic product categories rather than real brands,
- * for the same reason the index is synthetic: putting a real company's name on
- * an invented media plan misrepresents them.
- */
-const PRESETS = [
-  {
-    label: 'Running shoe launch',
-    city: 'brooklyn',
-    budget: 18000,
-    weeks: 6,
-    text: 'We are launching a running shoe for women 25 to 34 and want to be in front of people who already run in the mornings. Ideally sampling at the run itself plus a co-host moment. Trial is the goal, not just reach. Nothing with alcohol.',
-  },
-  {
-    label: 'Non-alcoholic drink',
-    city: 'new york',
-    budget: 24000,
-    weeks: 8,
-    text: 'A non-alcoholic aperitif looking for rooms where people socialise without drinking. Dinners, sober socials, wellness-adjacent groups. We want product integration into the evening rather than a table of samples by the door. Awareness first, conversions second.',
-  },
-  {
-    label: 'Skincare line',
-    city: 'los angeles',
-    budget: 12000,
-    weeks: 4,
-    text: 'Skincare brand targeting women 24 to 38 who care about recovery and wellness. Pilates, walking clubs, small group settings. Sampling and product integration both work. No run clubs, they are too sweaty for the product story.',
-  },
-] as const;
 
 const AUDIENCES = [
   '',
@@ -80,11 +52,12 @@ export default function Composer() {
   const [degraded, setDegraded] = useState<string | null>(null);
   const [rationales, setRationales] = useState<Record<string, string>>({});
 
-  const applyPreset = (preset: (typeof PRESETS)[number]) => {
+  const applyPreset = (preset: Preset) => {
     setText(preset.text);
     setBudget(preset.budget);
     setWeeks(preset.weeks);
     setCity(preset.city);
+    setAudience(preset.audience);
   };
 
   const toggleAvoid = (value: string) =>
