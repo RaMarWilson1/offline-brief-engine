@@ -31,25 +31,65 @@ const unavailableStore: RateLimitStore = {
   },
 };
 
+/**
+ * The credential pairs we accept, in priority order.
+ *
+ * Upstash's own naming is `UPSTASH_REDIS_REST_*`, and that is what
+ * `.env.example` documents and what a hand-configured instance uses. The Vercel
+ * marketplace integration injects `KV_REST_API_*` instead. Same database, two
+ * naming conventions, and the app has no way to prefer one at build time.
+ *
+ * Reading only the first pair is how a deploy ends up looking totally broken:
+ * the store resolves to unavailable, every policy fails closed, and `/api/plan`
+ * returns 429 on every request while `/api/brief` silently never reaches the
+ * model. That is correct fail-closed behaviour reacting to a naming mismatch,
+ * which is the worst kind of outage to debug because nothing is actually wrong.
+ *
+ * Pairs are resolved together, never field by field. Mixing a URL from one pair
+ * with a token from another would build a client that fails per-request instead
+ * of at startup.
+ *
+ * `KV_REST_API_READ_ONLY_TOKEN` is deliberately not a candidate: the sliding
+ * window counter calls INCR, so a read-only token would fail on every write.
+ */
+const CREDENTIAL_PAIRS: ReadonlyArray<{ url: string; token: string }> = [
+  { url: 'UPSTASH_REDIS_REST_URL', token: 'UPSTASH_REDIS_REST_TOKEN' },
+  { url: 'KV_REST_API_URL', token: 'KV_REST_API_TOKEN' },
+];
+
+function resolveCredentials():
+  | { url: string; token: string; via: string }
+  | null {
+  for (const pair of CREDENTIAL_PAIRS) {
+    const url = process.env[pair.url];
+    const token = process.env[pair.token];
+    if (url && token) return { url, token, via: `${pair.url}/${pair.token}` };
+  }
+  return null;
+}
+
 let store: RateLimitStore | null = null;
 let warned = false;
 
 export function getRateLimitStore(): RateLimitStore {
   if (store) return store;
 
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const creds = resolveCredentials();
 
-  if (url && token) {
-    store = upstashStore(new Redis({ url, token }));
+  if (creds) {
+    // Name only, never the value. Which pair won is the first thing you want to
+    // know when a deploy behaves unexpectedly.
+    console.info(`[rateLimit] Upstash store configured via ${creds.via}`);
+    store = upstashStore(new Redis({ url: creds.url, token: creds.token }));
     return store;
   }
 
   if (process.env.NODE_ENV === 'production') {
     // Fail closed, loudly. No brief text, no secrets: just the fact.
     console.error(
-      '[rateLimit] UPSTASH_REDIS_REST_URL/TOKEN unset in production. ' +
-        'Every rate limited route will fail closed until they are set.',
+      '[rateLimit] No Upstash credentials in production. Looked for ' +
+        CREDENTIAL_PAIRS.map((p) => `${p.url}/${p.token}`).join(' then ') +
+        '. Every rate limited route will fail closed until one pair is set.',
     );
     store = unavailableStore;
     return store;
