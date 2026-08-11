@@ -1,26 +1,295 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,800;1,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+/* ---------------------------------------------------------------------------
+   Tokens. Sampled from the live site, see docs/DESIGN.md.
+   Three greens on warm grey paper. No black, no pure white.
+   --------------------------------------------------------------------------- */
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #dddcd8;
+    --card: #efeeea;
+    --forest: #0d3221;
+    --emerald: #0aa96f;
+    --moss: #2c6249;
+    --chalk: #f8fafa;
+
+    --forest-hover: #123f2a;
+    --emerald-hover: #0bbc7c;
+    --hairline: rgb(13 50 33 / 0.14);
+
+    /* ConferenceEF (Elsner+Flake) is their real display face. Named first so it
+       renders on any machine that has it licensed; Figtree is the free stand-in
+       for everyone else. We reference the name, we never serve the files. */
+    --font-display: 'ConferenceEF', 'Figtree', system-ui, -apple-system, sans-serif;
+    --font-body: 'ConferenceEF', 'Figtree', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    --radius-card: 18px;
+    --radius-tile: 12px;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--moss);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    color: var(--forest);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  /* One emphasised word per headline, set in true italic. Their signature. */
+  h1 em,
+  h2 em {
+    font-style: italic;
+    font-weight: 800;
+  }
+
+  ::selection {
+    background: var(--emerald);
+    color: var(--chalk);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--emerald);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ---------------------------------------------------------------------------
+   Grain. Their background is not flat: a sample of a "flat" patch spans a
+   luminance range of about 20. One fixed overlay for the whole page, never
+   per-component.
+   --------------------------------------------------------------------------- */
+@layer base {
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.055;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Content sits above the grain. */
+  body > * {
+    position: relative;
+    z-index: 2;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Components
+   --------------------------------------------------------------------------- */
+@layer components {
+  /* --- Buttons: full pill, no shadow --- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .btn-primary {
+    background: var(--emerald);
+    color: var(--chalk);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--emerald-hover);
+  }
+
+  .btn-forest {
+    background: var(--forest);
+    color: var(--chalk);
+  }
+  .btn-forest:hover:not(:disabled) {
+    background: var(--forest-hover);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--forest);
+    border: 1px solid var(--hairline);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--card);
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* --- Surfaces --- */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius-card);
+    padding: 1.25rem 1.375rem;
+  }
+
+  .hairline {
+    border-color: var(--hairline);
+  }
+
+  /* --- Segmented toggle: forest container, emerald active segment --- */
+  .segmented {
+    @apply inline-flex items-center gap-1 rounded-full p-1;
+    background: var(--forest);
+  }
+  .segmented-item {
+    @apply rounded-full px-5 py-2;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14px;
+    color: rgb(248 250 250 / 0.62);
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .segmented-item[aria-selected='true'] {
+    background: var(--emerald);
+    color: var(--chalk);
+  }
+
+  /* --- Stat block: number first, label under. Never label above. --- */
+  .stat-number {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 34px;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--forest);
+  }
+  .stat-label {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--moss);
+    margin-top: 0.375rem;
+  }
+
+  /* --- Icon tile: emerald square, forest glyph --- */
+  .icon-tile {
+    @apply inline-flex items-center justify-center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-tile);
+    background: var(--emerald);
+    color: var(--forest);
+  }
+
+  /* --- Chip: forest fill, chalk label --- */
+  .chip {
+    @apply inline-flex items-center rounded-full px-2.5 py-1;
+    background: var(--forest);
+    color: var(--chalk);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .chip-quiet {
+    background: transparent;
+    color: var(--moss);
+    border: 1px solid var(--hairline);
+  }
+
+  /* --- Photo card: full bleed, scrim, chalk text in the scrim --- */
+  .photo-card {
+    @apply relative overflow-hidden;
+    border-radius: var(--radius-card);
+  }
+  .photo-card img {
+    @apply h-full w-full object-cover;
+    filter: contrast(1.08) saturate(0.92);
+  }
+  .photo-card::after {
+    content: '';
+    @apply absolute inset-x-0 bottom-0 h-2/3;
+    background: linear-gradient(transparent, rgb(6 26 17 / 0.85));
+  }
+  .photo-card-body {
+    @apply absolute inset-x-0 bottom-0 z-10 p-5;
+    color: var(--chalk);
+  }
+
+  /* --- Section header: forest H2, emerald subhead, moss support. Always 3. --- */
+  .section-head {
+    @apply mx-auto max-w-3xl text-center;
+  }
+  .section-head h2 {
+    font-size: clamp(28px, 4vw, 52px);
+    letter-spacing: -0.025em;
+  }
+  .section-sub {
+    color: var(--emerald);
+    font-weight: 600;
+    font-size: 20px;
+    margin-top: 0.75rem;
+  }
+  .section-support {
+    color: var(--moss);
+    font-weight: 500;
+    font-size: 15px;
+    margin-top: 0.5rem;
+  }
+
+  /* --- Data. Mono is ours, not theirs. Never at display size. --- */
+  .data {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--moss);
+  }
+
+  /* --- Synthetic-data notice. Not removable, not dismissible. --- */
+  .synthetic-note {
+    @apply flex items-center gap-2 rounded-full px-4 py-2;
+    background: var(--forest);
+    color: var(--chalk);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+  .text-hero {
+    font-size: clamp(38px, 6vw, 72px);
+    letter-spacing: -0.03em;
+    line-height: 0.98;
+  }
 }
