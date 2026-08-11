@@ -226,16 +226,18 @@ never contain brief text, secrets, or tokens.
 - Design tokens sampled from a live product rather than guessed, documented in
   [`docs/DESIGN.md`](docs/DESIGN.md).
 
-**Specified, not yet built** (Phase 1 onward in [`docs/SPEC.md`](docs/SPEC.md)):
-the brief composer, plan view, host inbox, check-in capture, and ops screens.
-Current state is tracked in [`docs/DEBRIEF.md`](docs/DEBRIEF.md).
+**Specified, not yet built** (Phase 2 onward in [`docs/SPEC.md`](docs/SPEC.md)):
+persistence, shareable plan URLs, the host inbox, check-in capture, and ops
+screens. Phase 1 is stateless: a plan lives in the browser tab that made it and
+is gone on reload. Current state is tracked in
+[`docs/DEBRIEF.md`](docs/DEBRIEF.md).
 
 ---
 
 ## What is real and what is not
 
 The scoring engine, allocator, funnel projection, payout split, brief parser,
-validation layer, and rate limiter are real and tested. 62 tests.
+validation layer, and rate limiter are real and tested. 81 tests.
 
 **The community index is synthetic and stays that way.** Real communities are
 real organisations run by real people, and attaching invented reach and pricing
@@ -267,13 +269,22 @@ question, not a hedge:
 ## Running it
 
 ```bash
-pnpm install
-cp .env.example .env    # ANTHROPIC_API_KEY, DATABASE_URL, UPSTASH_*
-pnpm db:push && pnpm db:seed
-pnpm test               # 62 tests
-pnpm dev
+npm install
+cp .env.example .env    # ANTHROPIC_API_KEY, UPSTASH_*
+npm test                # 81 tests
+npm run dev
 ```
 
+Phase 1 is stateless, so there is no database step yet. `db/schema.ts` and
+`db/rls.sql` are written and unused until Phase 2 puts them behind `db:push`.
+
+**With no `ANTHROPIC_API_KEY` set the app still works.** Every brief falls to the
+keyword parser and the interface says so. That is the intended behaviour rather
+than a degraded mode to apologise for: a media buyer staring at a spinner because
+an API had a bad afternoon is a broken product.
+
 `MemoryStore` for rate limiting is dev-only. Serverless functions do not share
-memory, so shipping it means no effective limit at all. Wire Upstash before any
-public deploy.
+memory, so shipping it means no effective limit at all. In production a missing
+Upstash config is treated as an unavailable store and every limited route fails
+closed, which makes the misconfiguration loud instead of silent. Wire Upstash
+before any public deploy.

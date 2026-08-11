@@ -189,3 +189,55 @@ export function clampInt(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
   return Math.min(max, Math.max(min, Math.round(value)));
 }
+
+// ---------------------------------------------------------------------------
+// The client boundary
+//
+// `/api/plan` receives a ParsedBrief posted back by the browser. That request is
+// as untrusted as the model's output: anyone can craft a body, so a hand-rolled
+// POST could otherwise set budgetCents to nine figures or push arbitrary strings
+// into the scoring inputs. Same treatment as model output: strict schema,
+// allowlist intersection, clamped money.
+// ---------------------------------------------------------------------------
+
+export const clientBriefSchema = modelBriefSchema
+  .extend({
+    budgetCents: z.number(),
+    flightWeeks: z.number(),
+    source: z.enum(['model', 'fallback']),
+  })
+  .strict();
+
+/**
+ * Validate a ParsedBrief that came back from a browser.
+ *
+ * Throws on a shape mismatch so the caller can reject. Note what survives: the
+ * budget is clamped to server bounds rather than trusted, and every list is
+ * re-intersected against the allowlist rather than accepted because it looks
+ * like a value we produced a moment ago.
+ */
+export function validateClientBrief(raw: unknown): ParsedBrief {
+  const parsed = clientBriefSchema.parse(raw);
+
+  return {
+    interests: allow(parsed.interests, INTERESTS, LIMITS.interests),
+    categories: allow<Category>(parsed.categories, CATEGORIES, LIMITS.categories),
+    cities: allow(parsed.cities, CITIES, LIMITS.cities),
+    formats: allow<Format>(parsed.formats, FORMATS, LIMITS.formats),
+    avoid: allow(parsed.avoid, [...CATEGORIES, ...INTERESTS], LIMITS.avoid),
+    audience: scrubText(parsed.audience, LIMITS.shortText),
+    kpi: scrubText(parsed.kpi, LIMITS.shortText),
+    summary: scrubText(parsed.summary, LIMITS.summaryText),
+    budgetCents: clampInt(
+      parsed.budgetCents,
+      LIMITS.minBudgetCents,
+      LIMITS.maxBudgetCents,
+    ),
+    flightWeeks: clampInt(
+      parsed.flightWeeks,
+      LIMITS.minFlightWeeks,
+      LIMITS.maxFlightWeeks,
+    ),
+    source: parsed.source,
+  };
+}

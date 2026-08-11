@@ -105,6 +105,22 @@ export const CHECKIN_POLICY: RateLimitPolicy = {
   onExceeded: 'reject',
 };
 
+/**
+ * The deterministic engine. No model call, so nothing to spend, but it is a
+ * public route and every public route ships with a limit.
+ *
+ * `reject`, not `degrade`: degrading means serving a cheaper path, and the
+ * engine already IS the cheap path. There is nothing to fall back to, so the
+ * honest answer under load is a 429 rather than a plan built from less.
+ */
+export const PLAN_POLICY: RateLimitPolicy = {
+  rules: [
+    { name: 'burst', limit: 20, windowSeconds: 60 },
+    { name: 'sustained', limit: 300, windowSeconds: 60 * 60 },
+  ],
+  onExceeded: 'reject',
+};
+
 /** Accept, decline, and other money-adjacent writes. */
 export const MUTATION_POLICY: RateLimitPolicy = {
   rules: [
