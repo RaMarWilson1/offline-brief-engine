@@ -248,6 +248,47 @@ will want the reason more than the decision.
 
 ## Log
 
+### 2026-08-11 — Two false figures in the public README
+
+Ra'Mar caught both after the repo went public.
+
+**`$5,100` was wrong.** "On an $18,000 brief the engine returns $5,100 rather
+than buy the fourth-best match" was a figure from the original single-file
+prototype, carried through the rewrite that changed the numbers. The real answer
+is $16,500 allocated across five communities and $1,500 returned. It was the most
+checkable sentence in the document, so it was also the likeliest thing for a
+reader to run and catch.
+
+Checking it properly changed the correction. The next community by rank was
+rejected on price rather than by a guard, so quoting it would have illustrated a
+different mechanism than the paragraph claims. Two rooms were affordable inside
+the remaining $1,500 and both were blocked by the score floor, so the paragraph
+now names one: a book club at exactly $1,500 scoring 50 against a floor of 55.
+A greedy fill buys it and spends the budget to zero. The example now demonstrates
+the claim rather than sitting beside it.
+
+**`93 / 48 / 11` were the targets, not the results.** The seed computes
+92 / 49 / 12. Both now appear, labelled. The near-miss is more credible than the
+round number.
+
+**`87 tests` was stale too**, found while fixing the others. Now 95.
+
+**What stops it recurring:** `lib/brief/docs.test.ts` binds every engine figure
+in the README to live engine output. Verified it catches what it was written for
+by reintroducing each original error and watching the suite fail. Presets moved
+to `lib/brief/presets.ts` so the test asserts against the same object the button
+uses rather than a copy of it.
+
+**Still manual:** the test count. Asserting a suite's own size from inside it
+breaks the build on every added test, and static counting does not work either
+(76 `it(` declarations against 95 reported tests, since some are generated). It
+is the one README figure with no consequence if stale, so it stays manual with a
+comment in `docs.test.ts` as the reminder.
+
+**The lesson worth keeping:** prose has no compiler, and this document and the
+README are both full of load-bearing claims. Numbers quoted in prose need a test
+or they rot silently through exactly the kind of rewrite that produced this one.
+
 ### 2026-08-11 — Ship day: model tiers, Upstash, GitHub, production
 
 **Done:**

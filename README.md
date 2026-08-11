@@ -276,7 +276,7 @@ is gone on reload. Current state is tracked in
 ## What is real and what is not
 
 The scoring engine, allocator, funnel projection, payout split, brief parser,
-validation layer, and rate limiter are real and tested. 87 tests.
+validation layer, and rate limiter are real and tested. 95 tests.
 
 **The community index is synthetic and stays that way.** Real communities are
 real organisations run by real people, and attaching invented reach and pricing
@@ -314,7 +314,7 @@ question, not a hedge:
 ```bash
 npm install
 cp .env.example .env    # ANTHROPIC_API_KEY, UPSTASH_*
-npm test                # 87 tests
+npm test                # 95 tests
 npm run dev
 ```
 

@@ -25,7 +25,11 @@ import { money } from '../format';
  * Deliberately not asserted: the stated test count. Asserting a suite's own size
  * from inside that suite means every added test breaks the build until the
  * README is edited, which trains people to edit the number without reading it.
- * It is also the one figure with no consequence if stale.
+ * Counting `it(` declarations statically does not work either, and that is
+ * measured rather than assumed: 76 declarations against 95 reported tests, since
+ * some are generated rather than written out. It is also the one figure in the
+ * README with no consequence if it goes stale, so it stays manual and this
+ * comment is the reminder.
  */
 
 /**
