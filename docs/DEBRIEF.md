@@ -92,6 +92,13 @@ Record what exists, never the values.
 Upstash resource: `upstash-kv-citron-pillow`, connected to the
 `offline-brief-engine` Vercel project.
 
+**Deploys are manual.** The Vercel project was linked before the GitHub repo
+existed, so it has no git integration: pushing to `main` does not deploy
+anything. Ship with `vercel --prod`. Connect the repo in the Vercel dashboard if
+push-to-deploy is wanted, which also gets preview deployments per branch. Until
+then, treat the deploy row above as the source of truth for what is actually
+running, not `git log`.
+
 ## Security gate
 
 Mirrors the checklist in `docs/SECURITY.md`. Do not tick a box from intent; tick
