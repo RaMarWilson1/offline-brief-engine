@@ -5,6 +5,8 @@ IRL communities to sponsor, priced per verified attendee, carried through to
 projected conversions, with contract terms and a payout schedule attached to
 every placement.
 
+**Live: [offline-brief-engine.vercel.app](https://offline-brief-engine.vercel.app)**
+
 Concept build by Ra'Mar Wilson. Not affiliated with or endorsed by any company.
 
 ---
@@ -205,6 +207,27 @@ No attendee identity is stored, ever. A check-in row carries no name, no email,
 and no lasting device identifier. Check-in codes contain no personal data. Logs
 never contain brief text, secrets, or tokens.
 
+### Browser-side controls
+
+Security headers ship with the deploy. Two of them do real work here rather than
+ticking a box:
+
+- `connect-src 'self'` means the browser is not permitted to reach
+  api.anthropic.com at all. "No API keys in the browser" stops being a convention
+  the code has to remember and becomes something the browser enforces.
+- `default-src 'self'` means an injected `<script src="https://evil/">` cannot
+  load, even though inline script is permitted.
+
+Also set: HSTS, `nosniff`, `Referrer-Policy`, `frame-ancestors 'none'`, and a
+`Permissions-Policy` that denies camera, microphone, and geolocation.
+
+Stated plainly because it is a real limitation: `script-src` carries
+`'unsafe-inline'`. Next's App Router streams inline hydration scripts, and the
+strict alternative is a per-request nonce from middleware, which forces every
+page to render dynamically. That trade is deliberate and recorded as a gap in
+[`docs/DEBRIEF.md`](docs/DEBRIEF.md) rather than described as a stricter policy
+than it is.
+
 ---
 
 ## Usability
@@ -237,7 +260,7 @@ is gone on reload. Current state is tracked in
 ## What is real and what is not
 
 The scoring engine, allocator, funnel projection, payout split, brief parser,
-validation layer, and rate limiter are real and tested. 81 tests.
+validation layer, and rate limiter are real and tested. 87 tests.
 
 **The community index is synthetic and stays that way.** Real communities are
 real organisations run by real people, and attaching invented reach and pricing
@@ -271,7 +294,7 @@ question, not a hedge:
 ```bash
 npm install
 cp .env.example .env    # ANTHROPIC_API_KEY, UPSTASH_*
-npm test                # 81 tests
+npm test                # 87 tests
 npm run dev
 ```
 
