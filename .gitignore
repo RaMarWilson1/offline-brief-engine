@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the example, which is the documented list of key names and
+# never carries values. Without this the README tells a fresh clone to copy
+# a file the repo does not contain.
+!.env.example
 
 # vercel
 .vercel
