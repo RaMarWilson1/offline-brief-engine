@@ -215,6 +215,11 @@ Do not ship without all of these:
 - [ ] Check-in cannot release funds; rate limited; capped; deduped
 - [ ] Share tokens random, hashed, expiring, revocable
 - [ ] `/api/brief` rate limited and length capped
+- [ ] Hard spend alert set on the Anthropic account (section 7). Added to this
+      list on 2026-08-11 after it was missed on the first deploy: it was stated
+      in section 7's body but never repeated here, and this list is what actually
+      gets walked. A control that only exists in prose is a control that gets
+      skipped.
 - [ ] `.env` not in git history; keys rotated if ever exposed
 - [ ] `pnpm audit` clean or triaged
 - [ ] Security headers set: CSP, HSTS, X-Content-Type-Options, Referrer-Policy

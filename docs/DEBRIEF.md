@@ -136,7 +136,7 @@ it from a verification you actually ran, and say how you verified.
 | No Anthropic SDK in a client bundle | done | Every `"use client"` file checked for an `@anthropic-ai/sdk` import: none. All model calls sit in route handlers |
 | `.env` absent from git history | done | Before pushing to a public repo: `git log --all --full-history -- .env` and the same for `.env.local` both returned empty. `git log --all -S "sk-ant-api"` matched no commit. `git grep -l "sk-ant" HEAD` matched no tracked file. `.env`, `.env.local`, `.env*.local`, and `.vercel` all confirmed ignored |
 | Keys rotated if ever exposed | **accepted risk, not met** | The key was pasted into `.env.example` rather than `.env`, so the value appeared in a session transcript. It never reached git: that file was itself gitignored by the `.env*` pattern, no commit contains key material, and `git grep` finds none in any tracked file. `docs/SECURITY.md` line 179 says a key pasted into a chat is burned and must be rotated. Ra'Mar reviewed this twice on 2026-08-11 and chose not to rotate. Closed as an accepted risk, not an open action. Left unticked because the control genuinely is not met, and a gate that can be ticked by deciding not to do the thing is not a gate. The exposure is bounded to a session transcript, so the practical mitigation is the spend alert below rather than rotation. |
-| Hard spend alert on the Anthropic account | **not set** | Required by `docs/SECURITY.md` line 169 and missed on ship day: I walked the pre-deploy gate at the bottom of that document and never checked section 7's body. It is the standing control on a paid endpoint, and with rotation declined it is now the main thing bounding what an exposed key could cost. Set it in the Anthropic Console under Billing. Nothing in code changes. |
+| Hard spend alert on the Anthropic account | done | Set by Ra'Mar in the Anthropic Console on 2026-08-11. **Attributed, not verified.** Spend limits have no API surface, so unlike every other line in this table there is no check I could run: this rests on his confirmation. Recorded that way rather than dressed up as a verification, since the whole point of this column is that it means something. Required by `docs/SECURITY.md` line 169, and with key rotation declined it is the control bounding what an exposed key could cost. |
 | `npm audit` clean | done | `npm audit --omit=dev`: 0 vulnerabilities |
 | RLS on every table | not started | No database in Phase 1 |
 | Ownership + state guard on every `:id` route | not applicable yet | No `:id` routes exist |
@@ -155,11 +155,6 @@ Anything a reviewer would catch should be written down before they catch it.
   `npm run typecheck` useless as a gate on Phase 1 code. Excluding it was the
   cheapest way to keep the gate meaningful. **Phase 2 must delete that exclusion
   in the same commit that installs drizzle**, or the schema ships untypechecked.
-- **No spend alert on the Anthropic account.** `docs/SECURITY.md` line 169
-  requires one and it was missed: the pre-deploy checklist at the bottom of that
-  file does not repeat it, so walking the checklist alone does not catch it.
-  `/api/brief` is rate limited per caller, which bounds one attacker, but nothing
-  currently bounds total spend across all callers. Console action, no code.
 - **The API key is not rotated, by decision.** Reviewed twice and accepted on
   2026-08-11. Recorded here so a reviewer sees the reasoning rather than
   discovering a security-gate line that is unticked with no explanation. Not an
@@ -325,9 +320,10 @@ or they rot silently through exactly the kind of rewrite that produced this one.
   gitignored and never committed, and the value was cleared before any push.
 
 **Next:**
-- Set a hard spend alert on the Anthropic account. Only open item from ship day,
-  and it is a Console action rather than code. Key rotation was reviewed and
-  declined, which makes the alert the control that bounds the downside.
+- Nothing open from ship day. The spend alert was the last item and is set.
+- Phase 2 is the next body of work, and its first commit has a prerequisite:
+  delete the `db/schema.ts` exclusion from `tsconfig.json` in the same commit
+  that installs drizzle, or the schema ships untypechecked.
 - Phase 2 in `docs/TASKS.md`: drizzle, `db:push` with `db/rls.sql` inside it,
   seed, persistence, share tokens. **Delete the `db/schema.ts` typecheck
   exclusion in that same commit.**
